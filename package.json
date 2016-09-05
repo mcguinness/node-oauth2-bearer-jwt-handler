@@ -1,22 +1,23 @@
 {
   "name": "node-oauth2-bearer-jwt-handler",
   "version": "0.2.0",
-  "description": "RFC 6750 JWT Bearer Token Handler with RSA JWKS Signing Key Provider",
+  "description": "RFC 6750 JWT Bearer Token Handler with RSA JWKS Key Provider",
   "private": true,
   "keywords": [
-    "jwt",
     "bearer",
     "token",
     "oauth",
     "oauth2",
+    "jwt",
+    "jwks",
     "oidc",
     "openid_connect",
-    "jwks",
     "okta"
   ],
   "scripts": {
     "test": "DEBUG=oauth2-jwt-bearer mocha"
   },
+  "main": "lib/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcguinness/node-oauth2-bearer-jwt-handler.git"
