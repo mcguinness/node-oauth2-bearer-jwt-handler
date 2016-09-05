@@ -207,6 +207,24 @@ describe('JwtTokenHandler', function() {
         })
       });
 
+      it('should use audience as realm for challenge', function(done) {
+        handler = new JwtTokenHandler({
+          issuer: issuer,
+          audience: audience,
+          jwksUrl: baseUrl + jwksPath,
+        });
+        handler.verifyRequest({}, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_request');
+            expect(err.statusCode).to.equal(400)
+            expect(err.challenge).to.equal('Bearer realm="' + audience + '", error="invalid_request", ' +
+              'error_description="Request must specify a token in either an authorization header, query parameter, or post parameter", ' +
+              'error_uri="https://tools.ietf.org/html/rfc6750"');
+            expect(claims).to.be.undefined;
+            done();
+        });
+      });
+
     });
 
     describe('with body with missing content-type', function() {
@@ -443,6 +461,25 @@ describe('JwtTokenHandler', function() {
     });
 
     describe('with invalid token', function() {
+
+      it('should use audience as realm for challenge', function(done) {
+        handler = new JwtTokenHandler({
+          issuer: 'https://example.com/invalid/issuer',
+          audience: audience,
+          jwksUrl: baseUrl + jwksPath,
+        });
+        handler.verifyToken(token, function(err, claims) {
+          expect(err).not.to.be.null;
+          expect(err.errorCode).to.equal('invalid_token');
+          expect(err.statusCode).to.equal(401)
+          expect(err.challenge).to.equal('Bearer realm="' + audience + '", error="invalid_token", ' +
+            'error_description="The token issuer is not trusted", ' +
+            'error_uri="https://tools.ietf.org/html/rfc7519#section-4.1.1"');
+          expect(err.uri).to.equal('https://tools.ietf.org/html/rfc7519#section-4.1.1');
+          expect(claims).to.be.undefined;
+          done();
+        });
+      });
 
       it('should be expired', function(done) {
         clock.restore()
