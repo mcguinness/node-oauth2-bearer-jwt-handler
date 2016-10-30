@@ -1,0 +1,49 @@
+{
+  "keys": [
+    {
+      "alg": "RS256",
+      "n": "4vxuTfHpzcrbWHlXJKdYwL9BN65HozQqhws7kYwvCEUW1mM67huwiw9KPYQFm7u-UnfOEDNiDFl-kEQSE1Iu2dk46NovyMmxpoRI8KafH3mBuEq8HAnKq5vcFxZ7iSk0MDXJvfJMwi3VFDbZ0ygsrAd58m8ZzxxXOleW5vu5GwWN6uH4QzTBVgIVMTBEH8dO2c8QYv8Nus3WGyvqEUQczq8uK_CH5YZG9shcwsclucphwHhkFcIuKC9RFxPam6IcQHr_n24yNF0awnWsFmg_ELcG3L8SFOZM0vl1iKbD-jeJt3lG3RHP4oZ02HP3TSjweFHa_m3JBZEUTYfbs-e-vw",
+      "kty": "RSA",
+      "use": "sig",
+      "kid": "missing e"
+    },
+    {
+      "alg": "RS256",
+      "e": "AQAB",
+      "kty": "RSA",
+      "use": "sig",
+      "kid": "missing n"
+    },
+    {
+      "alg": "RS256",
+      "e": "AQAB",
+      "n": "4vxuTfHpzcrbWHlXJKdYwL9BN65HozQqhws7kYwvCEUW1mM67huwiw9KPYQFm7u-UnfOEDNiDFl-kEQSE1Iu2dk46NovyMmxpoRI8KafH3mBuEq8HAnKq5vcFxZ7iSk0MDXJvfJMwi3VFDbZ0ygsrAd58m8ZzxxXOleW5vu5GwWN6uH4QzTBVgIVMTBEH8dO2c8QYv8Nus3WGyvqEUQczq8uK_CH5YZG9shcwsclucphwHhkFcIuKC9RFxPam6IcQHr_n24yNF0awnWsFmg_ELcG3L8SFOZM0vl1iKbD-jeJt3lG3RHP4oZ02HP3TSjweFHa_m3JBZEUTYfbs-e-vw",
+      "use": "sig",
+      "kid": "missing kty"
+    },
+    {
+      "alg": "RS256",
+      "e": "AQAB",
+      "n": "rq4pd90dQAXtBt31n29cZUdKLs_d1T56oFTLbttG1fJ9TFKqy-Ur1PCjLFTZh41pdy51jK6ic6HuZM5l6pXqWZkbaUtYnGDORA6YLMtakEyMHvyhWOUg43PEmdgvWx37s1FGeVMWurZkN3Lp-CROIGQx7cIh071YuqGzRatdtQQkA6ozQbiS0F89d01IOf2ZleVsfOM1cpHv7rRz7L7pmVYGcP1UcOYLaoP2JpdSLj8INNZwpAzuuuN6ft5724p4NeORZVzB0xDh5amArtiLdFx344d9cuLk3qjkV1rY6FzO9o8THPpLO8nQ39kj3ZvQTNkCsbeUPQy53mLd5-WxEQ",
+      "kty": "RSA",
+      "use": "enc",
+      "kid": "invalid use"
+    },
+    {
+      "alg": "HS256",
+      "kty": "oct",
+      "use": "sig",
+      "k": "HKkyeneeaXOJgwQYR9Q4_n0eCNQJlBEgkLuplc9lvssUUzIFK8mXs0GpNRGGkd6eRa6PH2QeeBIenMWE0J-YYi9EZROT0z1bHOWfEZudls97grjMa_2GvDm4K7myWV2KOyPKP43R6OfV2B76sfC4ibDXiTryT_fYmTYNqt3VqqEbMUlNVPQ1UgRgeJb6myGkhGrCnQRhPXogZEUVnI6ts9_gVpkADUgN7SgWyvyYNm0XaNCMz7R3JdzrO2mqpMrS8iTt9Juq7DyU2zRLmJ4kIx30Q78J2rNm59ZVlOUhJSoS428B-uJO14mvOb2CoUucUJ5uDMZThYBgN_THGInM1w",
+      "kid": "invalid alg"
+    },
+    {
+      "kty": "EC",
+      "crv": "P-256",
+      "x": "MKBCTNIcKUSDii11ySs3526iDZ8AiTo7Tu6KPAqv7D4",
+      "y": "4Etl6SRW2YiLUrN5vfvVHuhp7x8PxltmWWlbbM4IFyM",
+      "d": "870MB6gfuTJ4HtUnUvYMyJpr5eUZNP4Bk43bVdj3eAE",
+      "use": "sig",
+      "kid": "invalid alg"
+    }
+  ]
+}

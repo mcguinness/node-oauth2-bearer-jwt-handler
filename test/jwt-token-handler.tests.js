@@ -11,48 +11,19 @@ describe('JwtTokenHandler', function() {
   const baseUrl = 'http://authorization-server';
   const jwksPath = '/oauth2/v1/keys';
 
-
   describe('#JwtTokenHandler()', function() {
-
     var issuer = 'https://example.oktapreview.com';
     var audience = 'ANRZhyDh8HBFN5abN6Rg';
     var handler;
 
     beforeEach(function() {
-      handler = new JwtTokenHandler({
-        issuer: issuer,
-        audience: audience,
-        jwksUrl: baseUrl + jwksPath,
-      });
+      nock.cleanAll();
+      nock(baseUrl)
+        .get(jwksPath)
+        .replyWithFile(200, path.join(__dirname, 'keys.json'));
     });
 
-    it('should require issuer option', function() {
-      var err;
-      try {
-        handler = new JwtTokenHandler({
-          audience: audience,
-          jwksUrl: baseUrl + jwksPath,
-        });
-      } catch (err) {
-        err = err;
-      }
-      expect(err).not.to.be.null;
-    });
-
-    it('should require audience option', function() {
-      var err;
-      try {
-        handler = new JwtTokenHandler({
-          issuer: issuer,
-          jwksUrl: baseUrl + jwksPath,
-        });
-      } catch (err) {
-        err = err;
-      }
-      expect(err).not.to.be.null;
-    });
-
-    it('should require jwksUrl option', function() {
+    it('should require jwks or jwksUrl option', function() {
       var err;
       try {
         handler = new JwtTokenHandler({
@@ -65,45 +36,135 @@ describe('JwtTokenHandler', function() {
       expect(err).not.to.be.null;
     });
 
-    it('should have issuer property as option vaue', function() {
-      expect(handler.issuer).to.be.equal(issuer);
+    it('should require a jwks with valid RSA signature key', function() {
+      var err;
+      try {
+        handler = new JwtTokenHandler({
+          issuer: issuer,
+          audience: audience,
+          jwks: fs.readFileSync(path.join(__dirname, 'invalid-keys.json'), 'utf8')
+        });
+      } catch (err) {
+        err = err;
+      }
+      expect(err).not.to.be.null;
     });
 
-    it('should have audience property as option value', function() {
-      expect(handler.audience).to.be.equal(audience);
+    it('should require a valid jwks', function() {
+      var err;
+      try {
+        handler = new JwtTokenHandler({
+          issuer: issuer,
+          audience: audience,
+          jwks: { "keys": null }
+        });
+      } catch (err) {
+        err = err;
+      }
+      expect(err).not.to.be.null;
     });
 
-    it('should have realm property as default value', function() {
-      expect(handler.realm).to.be.equal(audience);
+    it('should require at least one jwk', function() {
+      var err;
+      try {
+        handler = new JwtTokenHandler({
+          issuer: issuer,
+          audience: audience,
+          jwks: { "keys": [] }
+        });
+      } catch (err) {
+        err = err;
+      }
+      expect(err).not.to.be.null;
     });
 
-    it('should have realm property as option value', function() {
-      handler = new JwtTokenHandler({
-        issuer: issuer,
-        audience: audience,
-        realm: 'TEST',
-        jwksUrl: baseUrl + jwksPath,
+    [
+      fs.readFileSync(path.join(__dirname, 'keys.json'), 'utf8'),
+      baseUrl + jwksPath
+    ].forEach(function(jwks) {
+
+
+      beforeEach(function() {
+        handler = new JwtTokenHandler({
+          issuer: issuer,
+          audience: audience,
+          jwks: jwks
+        });
       });
-      expect(handler.realm).to.be.equal('TEST');
-    });
 
-    it('should have scopeClaimName property as option value', function() {
-      handler = new JwtTokenHandler({
-        issuer: issuer,
-        audience: audience,
-        scopeClaimName: 'test',
-        jwksUrl: baseUrl + jwksPath,
+      it('should require issuer option', function() {
+        var err;
+        try {
+          handler = new JwtTokenHandler({
+            audience: audience,
+            jwks: jwks
+          });
+        } catch (err) {
+          err = err;
+        }
+        expect(err).not.to.be.null;
       });
-      expect(handler.scopeClaimName).to.be.equal('test');
-    });
 
-    it('should have scopeClaimName property as default value', function() {
-      expect(handler.scopeClaimName).to.be.equal('scp');
-    });
+      it('should require audience option', function() {
+        var err;
+        try {
+          handler = new JwtTokenHandler({
+            issuer: issuer,
+            jwks: jwks
+          });
+        } catch (err) {
+          err = err;
+        }
+        expect(err).not.to.be.null;
+      });
 
-    it('should have jwksUrl property as option value', function() {
-      expect(handler.jwksUrl).to.be.equal(baseUrl + jwksPath);
-    });
+      it('should have issuer property as option vaue', function() {
+        expect(handler.issuer).to.be.equal(issuer);
+      });
+
+      it('should have audience property as option value', function() {
+        expect(handler.audience).to.be.equal(audience);
+      });
+
+      it('should have realm property as default value', function() {
+        expect(handler.realm).to.be.equal(audience);
+      });
+
+      it('should have realm property as option value', function() {
+        handler = new JwtTokenHandler({
+          issuer: issuer,
+          audience: audience,
+          realm: 'TEST',
+          jwks: jwks
+        });
+        expect(handler.realm).to.be.equal('TEST');
+      });
+
+      it('should have scopeClaimName property as option value', function() {
+        handler = new JwtTokenHandler({
+          issuer: issuer,
+          audience: audience,
+          scopeClaimName: 'test',
+          jwks: jwks
+        });
+        expect(handler.scopeClaimName).to.be.equal('test');
+      });
+
+      it('should have scopeClaimName property as default value', function() {
+        expect(handler.scopeClaimName).to.be.equal('scp');
+      });
+
+      it('should have jwks property with keys', function(done) {
+        handler.getSigningKeys(function(err, keys) {
+          expect(err).to.be.null;
+          expect(keys).to.be.a('array');
+          expect(keys.length).to.be.equal(2);
+          expect(keys[0].rsaPublicKey).to.not.be.null;
+          expect(keys[1].rsaPublicKey).to.not.be.null;
+          done();
+        })
+      });
+    })
   });
 
   describe('#verifyRequest()', function() {
@@ -123,223 +184,233 @@ describe('JwtTokenHandler', function() {
       nock(baseUrl)
         .get(jwksPath)
         .replyWithFile(200, path.join(__dirname, 'keys.json'));
-      handler = new JwtTokenHandler({
-        issuer: issuer,
-        audience: audience,
-        realm: 'TEST',
-        jwksUrl: baseUrl + jwksPath,
-      });
     });
 
     afterEach(function () {
       try { clock.restore(); } catch (e) {}
     });
 
-    describe('with valid token sent via authorization header', function() {
+    [
+      fs.readFileSync(path.join(__dirname, 'keys.json'), 'utf8'),
+      baseUrl + jwksPath
+    ].forEach(function(jwks) {
 
-      it('should have subject, issuer, and audience claims', function(done) {
-        handler.verifyRequest({
-          headers: {
-            authorization: 'BEARER ' + token
-          }
-        }, function(err, claims) {
-          expect(err).to.be.null;
-          expect(claims.sub).to.equal(subject);
-          expect(claims.iss).to.equal(issuer);
-          expect(claims.aud).to.equal(audience);
-          done();
-        });
-      });
-
-    });
-
-    describe('with valid token sent via query parameter', function() {
-
-      it('should have subject, issuer, and audience claims', function(done) {
-        handler.verifyRequest({
-          query: {
-            access_token: token
-          }
-        }, function(err, claims) {
-          expect(err).to.be.null;
-          expect(claims.sub).to.equal(subject);
-          expect(claims.iss).to.equal(issuer);
-          expect(claims.aud).to.equal(audience);
-          done()
-        })
-      });
-
-    });
-
-    describe('with valid token sent via body parameter', function() {
-
-      it('should have subject, issuer, and audience claims', function(done) {
-        handler.verifyRequest({
-          headers: {
-            'content-type': 'application/x-www-form-urlencoded'
-          },
-          body: {
-            access_token: token
-          }
-        }, function(err, claims) {
-          expect(err).to.be.null;
-          expect(claims.sub).to.equal(subject);
-          expect(claims.iss).to.equal(issuer);
-          expect(claims.aud).to.equal(audience);
-          done();
-        })
-      });
-
-    });
-
-    describe('missing tokens', function() {
-
-      it('should have invalid_request error', function(done) {
-        handler.verifyRequest({}, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_request');
-          expect(err.statusCode).to.equal(400)
-          expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
-            'error_description="Request must specify a token in either an authorization header, query parameter, or post parameter", ' +
-            'error_uri="https://tools.ietf.org/html/rfc6750"');
-          expect(claims).to.be.undefined;
-          done();
-        })
-      });
-
-      it('should use audience as realm for challenge', function(done) {
+      beforeEach(function() {
         handler = new JwtTokenHandler({
           issuer: issuer,
           audience: audience,
-          jwksUrl: baseUrl + jwksPath,
+          realm: 'TEST',
+          jwks: jwks,
         });
-        handler.verifyRequest({}, function(err, claims) {
+      });
+
+      describe('with valid token sent via authorization header', function() {
+
+        it('should have subject, issuer, and audience claims', function(done) {
+          handler.verifyRequest({
+            headers: {
+              authorization: 'BEARER ' + token
+            }
+          }, function(err, claims) {
+            expect(err).to.be.null;
+            expect(claims.sub).to.equal(subject);
+            expect(claims.iss).to.equal(issuer);
+            expect(claims.aud).to.equal(audience);
+            done();
+          });
+        });
+
+      });
+
+      describe('with valid token sent via query parameter', function() {
+
+        it('should have subject, issuer, and audience claims', function(done) {
+          handler.verifyRequest({
+            query: {
+              access_token: token
+            }
+          }, function(err, claims) {
+            expect(err).to.be.null;
+            expect(claims.sub).to.equal(subject);
+            expect(claims.iss).to.equal(issuer);
+            expect(claims.aud).to.equal(audience);
+            done()
+          })
+        });
+
+      });
+
+      describe('with valid token sent via body parameter', function() {
+
+        it('should have subject, issuer, and audience claims', function(done) {
+          handler.verifyRequest({
+            headers: {
+              'content-type': 'application/x-www-form-urlencoded'
+            },
+            body: {
+              access_token: token
+            }
+          }, function(err, claims) {
+            expect(err).to.be.null;
+            expect(claims.sub).to.equal(subject);
+            expect(claims.iss).to.equal(issuer);
+            expect(claims.aud).to.equal(audience);
+            done();
+          })
+        });
+
+      });
+
+      describe('missing tokens', function() {
+
+        it('should have invalid_request error', function(done) {
+          handler.verifyRequest({}, function(err, claims) {
             expect(err).not.to.be.null;
             expect(err.errorCode).to.equal('invalid_request');
             expect(err.statusCode).to.equal(400)
-            expect(err.challenge).to.equal('Bearer realm="' + audience + '", error="invalid_request", ' +
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
               'error_description="Request must specify a token in either an authorization header, query parameter, or post parameter", ' +
               'error_uri="https://tools.ietf.org/html/rfc6750"');
             expect(claims).to.be.undefined;
             done();
+          })
         });
+
+        it('should use audience as realm for challenge', function(done) {
+          handler = new JwtTokenHandler({
+            issuer: issuer,
+            audience: audience,
+            jwks: jwks,
+          });
+          handler.verifyRequest({}, function(err, claims) {
+              expect(err).not.to.be.null;
+              expect(err.errorCode).to.equal('invalid_request');
+              expect(err.statusCode).to.equal(400)
+              expect(err.challenge).to.equal('Bearer realm="' + audience + '", error="invalid_request", ' +
+                'error_description="Request must specify a token in either an authorization header, query parameter, or post parameter", ' +
+                'error_uri="https://tools.ietf.org/html/rfc6750"');
+              expect(claims).to.be.undefined;
+              done();
+          });
+        });
+
       });
 
-    });
+      describe('with body with missing content-type', function() {
 
-    describe('with body with missing content-type', function() {
+        it('should have invalid_request error', function(done) {
+          handler.verifyRequest({
+            body: {
+              access_token: token
+            }
+          }, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_request');
+            expect(err.statusCode).to.equal(400)
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
+              'error_description="Request must specify a token in either an authorization header, query parameter, or post parameter", ' +
+              'error_uri="https://tools.ietf.org/html/rfc6750"');
+            expect(claims).to.be.undefined;
+            done();
+          })
+        });
 
-      it('should have invalid_request error', function(done) {
-        handler.verifyRequest({
-          body: {
-            access_token: token
-          }
-        }, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_request');
-          expect(err.statusCode).to.equal(400)
-          expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
-            'error_description="Request must specify a token in either an authorization header, query parameter, or post parameter", ' +
-            'error_uri="https://tools.ietf.org/html/rfc6750"');
-          expect(claims).to.be.undefined;
-          done();
-        })
       });
 
-    });
+      describe('with body and query params', function() {
 
-    describe('with body and query params', function() {
+        it('should have invalid_request error', function(done) {
+          handler.verifyRequest({
+            headers: {
+              'content-type': 'application/x-www-form-urlencoded'
+            },
+            body: {
+              access_token: token
+            },
+            query: {
+              access_token: token
+            }
+          }, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_request');
+            expect(err.statusCode).to.equal(400)
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
+              'error_description="Request cannot have token in both query and post parameter", ' +
+              'error_uri="https://tools.ietf.org/html/rfc6750#section-2.2"');
+            expect(claims).to.be.undefined;
+            done();
+          })
+        });
 
-      it('should have invalid_request error', function(done) {
-        handler.verifyRequest({
-          headers: {
-            'content-type': 'application/x-www-form-urlencoded'
-          },
-          body: {
-            access_token: token
-          },
-          query: {
-            access_token: token
-          }
-        }, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_request');
-          expect(err.statusCode).to.equal(400)
-          expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
-            'error_description="Request cannot have token in both query and post parameter", ' +
-            'error_uri="https://tools.ietf.org/html/rfc6750#section-2.2"');
-          expect(claims).to.be.undefined;
-          done();
-        })
       });
 
-    });
+      describe('with query and authorization params', function() {
 
-    describe('with query and authorization params', function() {
+        it('should have invalid_request error', function(done) {
+          handler.verifyRequest({
+            headers: {
+              authorization: 'BEARER' + token
+            },
+            query: {
+              access_token: token
+            }
+          }, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_request');
+            expect(err.statusCode).to.equal(400)
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
+              'error_description="Request must specify a valid scheme and token for authorization header", ' +
+              'error_uri="https://tools.ietf.org/html/rfc6750#section-2.1"');
+            expect(claims).to.be.undefined;
+            done();
+          })
+        });
 
-      it('should have invalid_request error', function(done) {
-        handler.verifyRequest({
-          headers: {
-            authorization: 'BEARER' + token
-          },
-          query: {
-            access_token: token
-          }
-        }, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_request');
-          expect(err.statusCode).to.equal(400)
-          expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
-            'error_description="Request must specify a valid scheme and token for authorization header", ' +
-            'error_uri="https://tools.ietf.org/html/rfc6750#section-2.1"');
-          expect(claims).to.be.undefined;
-          done();
-        })
       });
 
-    });
+      describe('with body and authorization params', function() {
 
-    describe('with body and authorization params', function() {
+        it('should have invalid_request error', function(done) {
+          handler.verifyRequest({
+            headers: {
+              authorization: 'BEARER' + token
+            },
+            body: {
+              access_token: token
+            }
+          }, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_request');
+            expect(err.statusCode).to.equal(400)
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
+              'error_description="Request must specify a valid scheme and token for authorization header", ' +
+              'error_uri="https://tools.ietf.org/html/rfc6750#section-2.1"');
+            expect(claims).to.be.undefined;
+            done();
+          })
+        });
 
-      it('should have invalid_request error', function(done) {
-        handler.verifyRequest({
-          headers: {
-            authorization: 'BEARER' + token
-          },
-          body: {
-            access_token: token
-          }
-        }, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_request');
-          expect(err.statusCode).to.equal(400)
-          expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
-            'error_description="Request must specify a valid scheme and token for authorization header", ' +
-            'error_uri="https://tools.ietf.org/html/rfc6750#section-2.1"');
-          expect(claims).to.be.undefined;
-          done();
-        })
       });
 
-    });
+      describe('with invalid authorization scheme', function() {
 
-    describe('with invalid authorization scheme', function() {
+        it('should have invalid_request error', function(done) {
+          handler.verifyRequest({
+            headers: {
+              authorization: 'OAUTH2' + token
+            }
+          }, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_request');
+            expect(err.statusCode).to.equal(400)
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
+              'error_description="Request must specify a valid scheme and token for authorization header", ' +
+              'error_uri="https://tools.ietf.org/html/rfc6750#section-2.1"');
+            expect(claims).to.be.undefined;
+            done();
+          })
+        });
 
-      it('should have invalid_request error', function(done) {
-        handler.verifyRequest({
-          headers: {
-            authorization: 'OAUTH2' + token
-          }
-        }, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_request');
-          expect(err.statusCode).to.equal(400)
-          expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_request", ' +
-            'error_description="Request must specify a valid scheme and token for authorization header", ' +
-            'error_uri="https://tools.ietf.org/html/rfc6750#section-2.1"');
-          expect(claims).to.be.undefined;
-          done();
-        })
       });
 
     });
@@ -363,205 +434,173 @@ describe('JwtTokenHandler', function() {
       nock(baseUrl)
         .get(jwksPath)
         .replyWithFile(200, path.join(__dirname, 'keys.json'));
-      handler = new JwtTokenHandler({
-        issuer: issuer,
-        audience: audience,
-        realm: 'TEST',
-        jwksUrl: baseUrl + jwksPath,
-      });
     });
 
     afterEach(function () {
       clock.restore();
     });
 
-    describe('with valid token', function() {
+    [
+      fs.readFileSync(path.join(__dirname, 'keys.json'), 'utf8'),
+      baseUrl + jwksPath
+    ].forEach(function(jwks) {
 
-      it('should have subject, issuer, and audience claims', function(done) {
-        handler.verifyToken(token, function(err, claims) {
-          expect(err).to.be.null;
-          expect(claims.sub).to.equal(subject);
-          expect(claims.iss).to.equal(issuer);
-          expect(claims.aud).to.equal(audience);
-          done();
-        });
-      });
-
-    });
-
-    describe('with valid token and options', function() {
-      handler = new JwtTokenHandler({
-        issuer: 'https://example.com/invalid/issuer',
-        audience: 'urn:invalid:audience',
-        realm: 'TEST',
-        jwksUrl: baseUrl + jwksPath,
-      });
-
-      it('should have subject, issuer, and audience claims', function(done) {
-        handler.verifyToken(token, { issuer: issuer, audience: audience }, function(err, claims) {
-          expect(err).to.be.null;
-          expect(claims.sub).to.equal(subject);
-          expect(claims.iss).to.equal(issuer);
-          expect(claims.aud).to.equal(audience);
-          done();
-        });
-      });
-
-      it('should have single scope', function(done) {
-        handler.verifyToken(token, { issuer: issuer, audience: audience, scopes: ['email'] } ,
-          function(err, claims) {
-            expect(err).to.be.null;
-            expect(claims.sub).to.equal(subject);
-            expect(claims.iss).to.equal(issuer);
-            expect(claims.aud).to.equal(audience);
-            done();
-          })
-      });
-
-      it('should have multiple scopes', function(done) {
-        handler.verifyToken(token, { issuer: issuer, audience: audience, scopes: ['email', 'phone'] },
-          function(err, claims) {
-            expect(err).to.be.null;
-            expect(claims.sub).to.equal(subject);
-            expect(claims.iss).to.equal(issuer);
-            expect(claims.aud).to.equal(audience);
-            done();
-          })
-      });
-
-      it('should return insufficient_scope error for single scope', function(done) {
-        handler.verifyToken(token, { scopes: ['missing'] },
-          function(err, claims) {
-            expect(err).not.to.be.null;
-            expect(err.errorCode).to.equal('insufficient_scope');
-            expect(err.statusCode).to.equal(403)
-            expect(err.challenge).to.equal('Bearer realm="TEST", error="insufficient_scope", ' +
-              'error_description="Insufficient scope for this resource", ' +
-              'error_uri="https://tools.ietf.org/html/rfc6750#section-3", scope="missing"');
-            expect(err.uri).to.equal('https://tools.ietf.org/html/rfc6750#section-3');
-            expect(claims).to.be.undefined;
-            done();
-          })
-      });
-
-      it('should return insufficient_scope error for multiple scopes', function(done) {
-        handler.verifyToken(token, { scopes: ['missing', 'email', 'foo'] },
-          function(err, claims) {
-            expect(err).not.to.be.null;
-            expect(err.errorCode).to.equal('insufficient_scope');
-            expect(err.statusCode).to.equal(403)
-            expect(err.challenge).to.equal('Bearer realm="TEST", error="insufficient_scope", ' +
-              'error_description="Insufficient scope for this resource", ' +
-              'error_uri="https://tools.ietf.org/html/rfc6750#section-3", scope="missing email foo"');
-            expect(err.uri).to.equal('https://tools.ietf.org/html/rfc6750#section-3');
-            expect(claims).to.be.undefined;
-            done();
-          })
-      });
-    });
-
-    describe('with invalid token', function() {
-
-      it('should use audience as realm for challenge', function(done) {
-        handler = new JwtTokenHandler({
-          issuer: 'https://example.com/invalid/issuer',
-          audience: audience,
-          jwksUrl: baseUrl + jwksPath,
-        });
-        handler.verifyToken(token, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_token');
-          expect(err.statusCode).to.equal(401)
-          expect(err.challenge).to.equal('Bearer realm="' + audience + '", error="invalid_token", ' +
-            'error_description="The token issuer is not trusted", ' +
-            'error_uri="https://tools.ietf.org/html/rfc7519#section-4.1.1"');
-          expect(err.uri).to.equal('https://tools.ietf.org/html/rfc7519#section-4.1.1');
-          expect(claims).to.be.undefined;
-          done();
-        });
-      });
-
-      it('should be expired', function(done) {
-        clock.restore()
-        handler.verifyToken(token, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_token');
-          expect(err.statusCode).to.equal(401)
-          expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
-            'error_description="The token is expired", ' +
-            'error_uri="https://tools.ietf.org/html/rfc7519#section-4.1.4"');
-          expect(err.uri).to.equal('https://tools.ietf.org/html/rfc7519#section-4.1.4');
-          expect(claims).to.be.undefined;
-          done();
-        })
-      });
-
-      it('should not resolve a signing key', function(done) {
-        nock.cleanAll();
-        nock(baseUrl)
-          .get(jwksPath)
-          .replyWithFile(200, path.join(__dirname, 'refresh-keys.json'));
-
-        handler.verifyToken(token, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_token');
-          expect(err.statusCode).to.equal(401)
-          expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
-            'error_description="Unable to resolve key for token signature"');
-          expect(claims).to.be.undefined;
-          done();
-        })
-      });
-
-      it('should not have valid issuer', function(done) {
-        handler = new JwtTokenHandler({
-          issuer: 'https://example.com/invalid/issuer',
-          audience: audience,
-          realm: 'TEST',
-          jwksUrl: baseUrl + jwksPath,
-        });
-
-        handler.verifyToken(token, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_token');
-          expect(err.statusCode).to.equal(401)
-          expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
-            'error_description="The token issuer is not trusted", ' +
-            'error_uri="https://tools.ietf.org/html/rfc7519#section-4.1.1"');
-          expect(err.uri).to.equal('https://tools.ietf.org/html/rfc7519#section-4.1.1');
-          expect(claims).to.be.undefined;
-          done();
-        })
-      });
-
-      it('should not have valid audience', function(done) {
+      beforeEach(function() {
         handler = new JwtTokenHandler({
           issuer: issuer,
+          audience: audience,
+          realm: 'TEST',
+          jwks: jwks,
+        });
+      });
+
+      describe('with valid token', function() {
+
+        it('should have subject, issuer, and audience claims', function(done) {
+          handler.verifyToken(token, function(err, claims) {
+            expect(err).to.be.null;
+            expect(claims.sub).to.equal(subject);
+            expect(claims.iss).to.equal(issuer);
+            expect(claims.aud).to.equal(audience);
+            done();
+          });
+        });
+
+      });
+
+      describe('with valid token and options', function() {
+        handler = new JwtTokenHandler({
+          issuer: 'https://example.com/invalid/issuer',
           audience: 'urn:invalid:audience',
           realm: 'TEST',
           jwksUrl: baseUrl + jwksPath,
         });
 
-        handler.verifyToken(token, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_token');
-          expect(err.statusCode).to.equal(401)
-          expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
-            'error_description="The token is not valid for this audience", ' +
-            'error_uri="https://tools.ietf.org/html/rfc7519#section-4.1.3"');
-          expect(err.uri).to.equal('https://tools.ietf.org/html/rfc7519#section-4.1.3');
-          expect(claims).to.be.undefined;
-          done();
-        })
+        it('should have subject, issuer, and audience claims', function(done) {
+          handler.verifyToken(token, { issuer: issuer, audience: audience }, function(err, claims) {
+            expect(err).to.be.null;
+            expect(claims.sub).to.equal(subject);
+            expect(claims.iss).to.equal(issuer);
+            expect(claims.aud).to.equal(audience);
+            done();
+          });
+        });
+
+        it('should have single scope', function(done) {
+          handler.verifyToken(token, { issuer: issuer, audience: audience, scopes: ['email'] } ,
+            function(err, claims) {
+              expect(err).to.be.null;
+              expect(claims.sub).to.equal(subject);
+              expect(claims.iss).to.equal(issuer);
+              expect(claims.aud).to.equal(audience);
+              done();
+            })
+        });
+
+        it('should have multiple scopes', function(done) {
+          handler.verifyToken(token, { issuer: issuer, audience: audience, scopes: ['email', 'phone'] },
+            function(err, claims) {
+              expect(err).to.be.null;
+              expect(claims.sub).to.equal(subject);
+              expect(claims.iss).to.equal(issuer);
+              expect(claims.aud).to.equal(audience);
+              done();
+            })
+        });
+
+        it('should return insufficient_scope error for single scope', function(done) {
+          handler.verifyToken(token, { scopes: ['missing'] },
+            function(err, claims) {
+              expect(err).not.to.be.null;
+              expect(err.errorCode).to.equal('insufficient_scope');
+              expect(err.statusCode).to.equal(403)
+              expect(err.challenge).to.equal('Bearer realm="TEST", error="insufficient_scope", ' +
+                'error_description="Insufficient scope for this resource", ' +
+                'error_uri="https://tools.ietf.org/html/rfc6750#section-3", scope="missing"');
+              expect(err.uri).to.equal('https://tools.ietf.org/html/rfc6750#section-3');
+              expect(claims).to.be.undefined;
+              done();
+            })
+        });
+
+        it('should return insufficient_scope error for multiple scopes', function(done) {
+          handler.verifyToken(token, { scopes: ['missing', 'email', 'foo'] },
+            function(err, claims) {
+              expect(err).not.to.be.null;
+              expect(err.errorCode).to.equal('insufficient_scope');
+              expect(err.statusCode).to.equal(403)
+              expect(err.challenge).to.equal('Bearer realm="TEST", error="insufficient_scope", ' +
+                'error_description="Insufficient scope for this resource", ' +
+                'error_uri="https://tools.ietf.org/html/rfc6750#section-3", scope="missing email foo"');
+              expect(err.uri).to.equal('https://tools.ietf.org/html/rfc6750#section-3');
+              expect(claims).to.be.undefined;
+              done();
+            })
+        });
       });
-    });
 
+      describe('with invalid token', function() {
 
-    describe('with invalid token and override options', function() {
+        it('should use audience as realm for challenge', function(done) {
+          handler = new JwtTokenHandler({
+            issuer: 'https://example.com/invalid/issuer',
+            audience: audience,
+            jwksUrl: baseUrl + jwksPath,
+          });
+          handler.verifyToken(token, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_token');
+            expect(err.statusCode).to.equal(401)
+            expect(err.challenge).to.equal('Bearer realm="' + audience + '", error="invalid_token", ' +
+              'error_description="The token issuer is not trusted", ' +
+              'error_uri="https://tools.ietf.org/html/rfc7519#section-4.1.1"');
+            expect(err.uri).to.equal('https://tools.ietf.org/html/rfc7519#section-4.1.1');
+            expect(claims).to.be.undefined;
+            done();
+          });
+        });
 
-      it('should not have valid issuer', function(done) {
-        handler.verifyToken(token, { issuer: 'https://example.com/invalid/issuer' },
-          function(err, claims) {
+        it('should be expired', function(done) {
+          clock.restore()
+          handler.verifyToken(token, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_token');
+            expect(err.statusCode).to.equal(401)
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
+              'error_description="The token is expired", ' +
+              'error_uri="https://tools.ietf.org/html/rfc7519#section-4.1.4"');
+            expect(err.uri).to.equal('https://tools.ietf.org/html/rfc7519#section-4.1.4');
+            expect(claims).to.be.undefined;
+            done();
+          })
+        });
+
+        it('should not resolve a signing key', function(done) {
+          nock.cleanAll();
+          nock(baseUrl)
+            .get(jwksPath)
+            .replyWithFile(200, path.join(__dirname, 'refresh-keys.json'));
+
+          handler.verifyToken(token, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_token');
+            expect(err.statusCode).to.equal(401)
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
+              'error_description="Unable to resolve key for token signature"');
+            expect(claims).to.be.undefined;
+            done();
+          })
+        });
+
+        it('should not have valid issuer', function(done) {
+          handler = new JwtTokenHandler({
+            issuer: 'https://example.com/invalid/issuer',
+            audience: audience,
+            realm: 'TEST',
+            jwksUrl: baseUrl + jwksPath,
+          });
+
+          handler.verifyToken(token, function(err, claims) {
             expect(err).not.to.be.null;
             expect(err.errorCode).to.equal('invalid_token');
             expect(err.statusCode).to.equal(401)
@@ -572,23 +611,64 @@ describe('JwtTokenHandler', function() {
             expect(claims).to.be.undefined;
             done();
           })
+        });
+
+        it('should not have valid audience', function(done) {
+          handler = new JwtTokenHandler({
+            issuer: issuer,
+            audience: 'urn:invalid:audience',
+            realm: 'TEST',
+            jwksUrl: baseUrl + jwksPath,
+          });
+
+          handler.verifyToken(token, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_token');
+            expect(err.statusCode).to.equal(401)
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
+              'error_description="The token is not valid for this audience", ' +
+              'error_uri="https://tools.ietf.org/html/rfc7519#section-4.1.3"');
+            expect(err.uri).to.equal('https://tools.ietf.org/html/rfc7519#section-4.1.3');
+            expect(claims).to.be.undefined;
+            done();
+          })
+        });
       });
 
-      it('should not have valid audience', function(done) {
-        handler.verifyToken(token, { audience: 'urn:invalid:audience' }, function(err, claims) {
-          expect(err).not.to.be.null;
-          expect(err.errorCode).to.equal('invalid_token');
-          expect(err.statusCode).to.equal(401)
-          expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
-            'error_description="The token is not valid for this audience", ' +
-            'error_uri="https://tools.ietf.org/html/rfc7519#section-4.1.3"');
-          expect(err.uri).to.equal('https://tools.ietf.org/html/rfc7519#section-4.1.3');
-          expect(claims).to.be.undefined;
-          done();
-        })
+
+      describe('with invalid token and override options', function() {
+
+        it('should not have valid issuer', function(done) {
+          handler.verifyToken(token, { issuer: 'https://example.com/invalid/issuer' },
+            function(err, claims) {
+              expect(err).not.to.be.null;
+              expect(err.errorCode).to.equal('invalid_token');
+              expect(err.statusCode).to.equal(401)
+              expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
+                'error_description="The token issuer is not trusted", ' +
+                'error_uri="https://tools.ietf.org/html/rfc7519#section-4.1.1"');
+              expect(err.uri).to.equal('https://tools.ietf.org/html/rfc7519#section-4.1.1');
+              expect(claims).to.be.undefined;
+              done();
+            })
+        });
+
+        it('should not have valid audience', function(done) {
+          handler.verifyToken(token, { audience: 'urn:invalid:audience' }, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_token');
+            expect(err.statusCode).to.equal(401)
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
+              'error_description="The token is not valid for this audience", ' +
+              'error_uri="https://tools.ietf.org/html/rfc7519#section-4.1.3"');
+            expect(err.uri).to.equal('https://tools.ietf.org/html/rfc7519#section-4.1.3');
+            expect(claims).to.be.undefined;
+            done();
+          })
+        });
+
       });
 
     });
-
   });
 });
