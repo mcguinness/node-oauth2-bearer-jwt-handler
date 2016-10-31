@@ -12,8 +12,8 @@ describe('JwtTokenHandler', function() {
   const jwksPath = '/oauth2/v1/keys';
 
   describe('#JwtTokenHandler()', function() {
-    var issuer = 'https://example.oktapreview.com';
-    var audience = 'ANRZhyDh8HBFN5abN6Rg';
+    const issuer = 'https://example.oktapreview.com';
+    const audience = 'ANRZhyDh8HBFN5abN6Rg';
     var handler;
 
     beforeEach(function() {
@@ -77,6 +77,10 @@ describe('JwtTokenHandler', function() {
       }
       expect(err).not.to.be.null;
     });
+
+    /*
+      Repeat tests for static and dynamic key resolvers
+     */
 
     [
       fs.readFileSync(path.join(__dirname, 'keys.json'), 'utf8'),
@@ -168,13 +172,13 @@ describe('JwtTokenHandler', function() {
   });
 
   describe('#verifyRequest()', function() {
-    var token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IkM0TmdMMlFIVHpvRVJfbzEzTGJza2pYWk1RV1FoUVRZZzNvdFBHR1pHWFkifQ.eyJzdWIiOiIwMHU1aXZzdnI1MzFVNWRoajBoNyIsIm5hbWUiOiJLYXJsIE1jR3Vpbm5lc3MiLCJsb2NhbGUiOiJlbi1VUyIsImVtYWlsIjoia21jZ3Vpbm5lc3NAb2t0YS5jb20iLCJ2ZXIiOjEsImlzcyI6Imh0dHBzOi8vZXhhbXBsZS5va3RhcHJldmlldy5jb20iLCJhdWQiOiJBTlJaaHlEaDhIQkZONWFiTjZSZyIsImlhdCI6MTQ2MDMxMzUxMiwiZXhwIjoxNDYwMzE3MTEyLCJqdGkiOiJGekFqdS14RVhaa2ZWSTJudmstdiIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvNWl2c3ZxbEpTSlZCbWUwaDciLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJrbWNndWlubmVzc0Bva3RhLmNvbSIsImdpdmVuX25hbWUiOiJLYXJsIiwiZmFtaWx5X25hbWUiOiJNY0d1aW5uZXNzIiwiem9uZWluZm8iOiJBbWVyaWNhL0xvc19BbmdlbGVzIiwidXBkYXRlZF9hdCI6MTQ1NzgzNDk1MiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF1dGhfdGltZSI6MTQ2MDMxMzUxMn0.cxx2NHLcN8-Fabbw3GfcfQYJut0s6dvhPBokvL2eZlXEz1PlC6uronOT55E8qLf4PgQbuSqiW9HQHtp6ollRGJzPGzjEvociHh9LnHmK8p2EUBS_JcddXuH2UxYbCFo45lp-wMhHUEQGaQaMzuNscIju2Xy93Dv9rCsl826hE1vNZAoiYpvLBlGF2rUE_w4RmZSIzbDYBe5ueBtTzM1KaLgIXExNXqHhsyHv2MZV5Mz0UUcg66P2HwEgDWoHHZQhx11u57-3Bd_S1PxIcM-EAtMhnj0onr588muaACgeVAh8P3-kK3MvzqhHBIMQCwUbmDO4b5DYcj3xaYVHq62Raw';
-    var issuer = 'https://example.oktapreview.com';
-    var kid ='C4NgL2QHTzoER_o13LbskjXZMQWQhQTYg3otPGGZGXY';
-    var expiresAt = 1460313512;
-    var audience = 'ANRZhyDh8HBFN5abN6Rg';
-    var subject = '00u5ivsvr531U5dhj0h7';
-    var email = 'kmcguinness@okta.com';
+    const token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IkM0TmdMMlFIVHpvRVJfbzEzTGJza2pYWk1RV1FoUVRZZzNvdFBHR1pHWFkifQ.eyJzdWIiOiIwMHU1aXZzdnI1MzFVNWRoajBoNyIsIm5hbWUiOiJLYXJsIE1jR3Vpbm5lc3MiLCJsb2NhbGUiOiJlbi1VUyIsImVtYWlsIjoia21jZ3Vpbm5lc3NAb2t0YS5jb20iLCJ2ZXIiOjEsImlzcyI6Imh0dHBzOi8vZXhhbXBsZS5va3RhcHJldmlldy5jb20iLCJhdWQiOiJBTlJaaHlEaDhIQkZONWFiTjZSZyIsImlhdCI6MTQ2MDMxMzUxMiwiZXhwIjoxNDYwMzE3MTEyLCJqdGkiOiJGekFqdS14RVhaa2ZWSTJudmstdiIsImFtciI6WyJwd2QiXSwiaWRwIjoiMDBvNWl2c3ZxbEpTSlZCbWUwaDciLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJrbWNndWlubmVzc0Bva3RhLmNvbSIsImdpdmVuX25hbWUiOiJLYXJsIiwiZmFtaWx5X25hbWUiOiJNY0d1aW5uZXNzIiwiem9uZWluZm8iOiJBbWVyaWNhL0xvc19BbmdlbGVzIiwidXBkYXRlZF9hdCI6MTQ1NzgzNDk1MiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF1dGhfdGltZSI6MTQ2MDMxMzUxMn0.cxx2NHLcN8-Fabbw3GfcfQYJut0s6dvhPBokvL2eZlXEz1PlC6uronOT55E8qLf4PgQbuSqiW9HQHtp6ollRGJzPGzjEvociHh9LnHmK8p2EUBS_JcddXuH2UxYbCFo45lp-wMhHUEQGaQaMzuNscIju2Xy93Dv9rCsl826hE1vNZAoiYpvLBlGF2rUE_w4RmZSIzbDYBe5ueBtTzM1KaLgIXExNXqHhsyHv2MZV5Mz0UUcg66P2HwEgDWoHHZQhx11u57-3Bd_S1PxIcM-EAtMhnj0onr588muaACgeVAh8P3-kK3MvzqhHBIMQCwUbmDO4b5DYcj3xaYVHq62Raw';
+    const issuer = 'https://example.oktapreview.com';
+    const kid ='C4NgL2QHTzoER_o13LbskjXZMQWQhQTYg3otPGGZGXY';
+    const expiresAt = 1460313512;
+    const audience = 'ANRZhyDh8HBFN5abN6Rg';
+    const subject = '00u5ivsvr531U5dhj0h7';
+    const email = 'kmcguinness@okta.com';
     var clock;
     var handler;
 
@@ -189,6 +193,10 @@ describe('JwtTokenHandler', function() {
     afterEach(function () {
       try { clock.restore(); } catch (e) {}
     });
+
+    /*
+      Repeat tests for static and dynamic key resolvers
+     */
 
     [
       fs.readFileSync(path.join(__dirname, 'keys.json'), 'utf8'),
@@ -418,13 +426,13 @@ describe('JwtTokenHandler', function() {
   });
 
   describe('#verifyToken()', function() {
-    var issuer = 'https://example.oktapreview.com/as/orsKMQsSWQvzyPXbz0NY';
-    var token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjdFd0I2elR3NFYxSHRzVFRpZFlvcVpJNEZoeHJMM3M2Y283NmpuTFBKLWsifQ.eyJ2ZXIiOjEsImp0aSI6IkFULk1ydXZ0OHVUT1R2dThrMi11LTZaZDJsb3kyNG9PZkJuWFhEalhlQW5nV2ciLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YXByZXZpZXcuY29tL2FzL29yc0tNUXNTV1F2enlQWGJ6ME5ZIiwiYXVkIjoiQU5SWmh5RGg4SEJGTjVhYk42UmciLCJzdWIiOiIwMHU1aXZzdnI1MzFVNWRoajBoNyIsImlhdCI6MTQ2ODk0NTgzNCwiZXhwIjoxNDY4OTQ5NDM0LCJjaWQiOiJBTlJaaHlEaDhIQkZONWFiTjZSZyIsInVpZCI6IjAwdTVpdnN2cjUzMVU1ZGhqMGg3Iiwic2NwIjpbIm9wZW5pZCIsImVtYWlsIiwicHJvZmlsZSIsImFkZHJlc3MiLCJwaG9uZSJdLCJzdWJBbHROYW1lIjoia21jZ3Vpbm5lc3NAb2t0YS5jb20ifQ.f6RMEjYhjIMnxJr1xgJWBz_igYdN3hxxDPSOODUsJxD_Ud_w5tKVVLIAKIM70hZ1DFLytaIoRI71EvuKB3uUMh5AR0N_gvLZnamKdrKl9r5RD1WLbUL7sKm378b4KWW2n1gqZBXAn9Se_mdk1j0_6Dq63sc6qhjSn40VEINU6RV7uwP4OGo0RdFaVWGo14biMrxgGa38rlZc_k-p0fd8zL6nw4W5myrikqW-mF2Xf55B05Fec2GelBcqoyarnF5EiMU-6G4tO1TQC5LM8J0glqhRAkXBOjpAK8eTAKWYpIQY_7MuIt5VCvVQ9anBGJ2GMQWm_oy9thZaeItAhxthPw';
-    var kid = '7EwB6zTw4V1HtsTTidYoqZI4FhxrL3s6co76jnLPJ-k';
-    var expiresAt = 1468949434;
-    var audience = 'ANRZhyDh8HBFN5abN6Rg';
-    var subject = '00u5ivsvr531U5dhj0h7';
-    var email = 'kmcguinness@okta.com';
+    const issuer = 'https://example.oktapreview.com/as/orsKMQsSWQvzyPXbz0NY';
+    const token = 'eyJhbGciOiJSUzI1NiIsImtpZCI6IjdFd0I2elR3NFYxSHRzVFRpZFlvcVpJNEZoeHJMM3M2Y283NmpuTFBKLWsifQ.eyJ2ZXIiOjEsImp0aSI6IkFULk1ydXZ0OHVUT1R2dThrMi11LTZaZDJsb3kyNG9PZkJuWFhEalhlQW5nV2ciLCJpc3MiOiJodHRwczovL2V4YW1wbGUub2t0YXByZXZpZXcuY29tL2FzL29yc0tNUXNTV1F2enlQWGJ6ME5ZIiwiYXVkIjoiQU5SWmh5RGg4SEJGTjVhYk42UmciLCJzdWIiOiIwMHU1aXZzdnI1MzFVNWRoajBoNyIsImlhdCI6MTQ2ODk0NTgzNCwiZXhwIjoxNDY4OTQ5NDM0LCJjaWQiOiJBTlJaaHlEaDhIQkZONWFiTjZSZyIsInVpZCI6IjAwdTVpdnN2cjUzMVU1ZGhqMGg3Iiwic2NwIjpbIm9wZW5pZCIsImVtYWlsIiwicHJvZmlsZSIsImFkZHJlc3MiLCJwaG9uZSJdLCJzdWJBbHROYW1lIjoia21jZ3Vpbm5lc3NAb2t0YS5jb20ifQ.f6RMEjYhjIMnxJr1xgJWBz_igYdN3hxxDPSOODUsJxD_Ud_w5tKVVLIAKIM70hZ1DFLytaIoRI71EvuKB3uUMh5AR0N_gvLZnamKdrKl9r5RD1WLbUL7sKm378b4KWW2n1gqZBXAn9Se_mdk1j0_6Dq63sc6qhjSn40VEINU6RV7uwP4OGo0RdFaVWGo14biMrxgGa38rlZc_k-p0fd8zL6nw4W5myrikqW-mF2Xf55B05Fec2GelBcqoyarnF5EiMU-6G4tO1TQC5LM8J0glqhRAkXBOjpAK8eTAKWYpIQY_7MuIt5VCvVQ9anBGJ2GMQWm_oy9thZaeItAhxthPw';
+    const kid = '7EwB6zTw4V1HtsTTidYoqZI4FhxrL3s6co76jnLPJ-k';
+    const expiresAt = 1468949434;
+    const audience = 'ANRZhyDh8HBFN5abN6Rg';
+    const subject = '00u5ivsvr531U5dhj0h7';
+    const email = 'kmcguinness@okta.com';
     var clock;
     var handler;
 
@@ -441,6 +449,78 @@ describe('JwtTokenHandler', function() {
     });
 
     [
+      fs.readFileSync(path.join(__dirname, 'refresh-keys.json'), 'utf8'),
+      baseUrl + jwksPath
+    ].forEach(function(jwks) {
+
+      describe('with missing signature keys', function() {
+
+        it('should not resolve a signing key', function(done) {
+
+          handler = new JwtTokenHandler({
+            issuer: issuer,
+            audience: audience,
+            realm: 'TEST',
+            jwks: jwks
+          });
+
+          nock.cleanAll();
+          nock(baseUrl)
+            .get(jwksPath)
+            .replyWithFile(200, path.join(__dirname, 'refresh-keys.json'));
+
+          handler.verifyToken(token, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_token');
+            expect(err.statusCode).to.equal(401)
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
+              'error_description="Unable to resolve key for token signature"');
+            expect(claims).to.be.undefined;
+            done();
+          })
+        });
+
+      });
+
+    });
+
+    [
+      fs.readFileSync(path.join(__dirname, 'invalid-signature-keys.json'), 'utf8'),
+      baseUrl + jwksPath
+    ].forEach(function(jwks) {
+
+      describe('with invalid signature keys', function() {
+
+        it('should reject token signature', function(done) {
+
+          handler = new JwtTokenHandler({
+            issuer: issuer,
+            audience: audience,
+            realm: 'TEST',
+            jwks: jwks
+          });
+
+          nock.cleanAll();
+          nock(baseUrl)
+            .get(jwksPath)
+            .replyWithFile(200, path.join(__dirname, 'invalid-signature-keys.json'));
+
+          handler.verifyToken(token, function(err, claims) {
+            expect(err).not.to.be.null;
+            expect(err.errorCode).to.equal('invalid_token');
+            expect(err.statusCode).to.equal(401)
+            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
+              'error_description="The token is not valid", error_uri="https://tools.ietf.org/html/rfc7519"');
+            expect(claims).to.be.undefined;
+            done();
+          })
+        });
+
+      });
+
+    });
+
+    [
       fs.readFileSync(path.join(__dirname, 'keys.json'), 'utf8'),
       baseUrl + jwksPath
     ].forEach(function(jwks) {
@@ -450,7 +530,7 @@ describe('JwtTokenHandler', function() {
           issuer: issuer,
           audience: audience,
           realm: 'TEST',
-          jwks: jwks,
+          jwks: jwks
         });
       });
 
@@ -469,11 +549,12 @@ describe('JwtTokenHandler', function() {
       });
 
       describe('with valid token and options', function() {
+
         handler = new JwtTokenHandler({
           issuer: 'https://example.com/invalid/issuer',
           audience: 'urn:invalid:audience',
           realm: 'TEST',
-          jwksUrl: baseUrl + jwksPath,
+          jwks: jwks
         });
 
         it('should have subject, issuer, and audience claims', function(done) {
@@ -545,7 +626,7 @@ describe('JwtTokenHandler', function() {
           handler = new JwtTokenHandler({
             issuer: 'https://example.com/invalid/issuer',
             audience: audience,
-            jwksUrl: baseUrl + jwksPath,
+            jwks: jwks
           });
           handler.verifyToken(token, function(err, claims) {
             expect(err).not.to.be.null;
@@ -575,29 +656,12 @@ describe('JwtTokenHandler', function() {
           })
         });
 
-        it('should not resolve a signing key', function(done) {
-          nock.cleanAll();
-          nock(baseUrl)
-            .get(jwksPath)
-            .replyWithFile(200, path.join(__dirname, 'refresh-keys.json'));
-
-          handler.verifyToken(token, function(err, claims) {
-            expect(err).not.to.be.null;
-            expect(err.errorCode).to.equal('invalid_token');
-            expect(err.statusCode).to.equal(401)
-            expect(err.challenge).to.equal('Bearer realm="TEST", error="invalid_token", ' +
-              'error_description="Unable to resolve key for token signature"');
-            expect(claims).to.be.undefined;
-            done();
-          })
-        });
-
         it('should not have valid issuer', function(done) {
           handler = new JwtTokenHandler({
             issuer: 'https://example.com/invalid/issuer',
             audience: audience,
             realm: 'TEST',
-            jwksUrl: baseUrl + jwksPath,
+            jwks: jwks
           });
 
           handler.verifyToken(token, function(err, claims) {
@@ -618,7 +682,7 @@ describe('JwtTokenHandler', function() {
             issuer: issuer,
             audience: 'urn:invalid:audience',
             realm: 'TEST',
-            jwksUrl: baseUrl + jwksPath,
+            jwks: jwks
           });
 
           handler.verifyToken(token, function(err, claims) {
