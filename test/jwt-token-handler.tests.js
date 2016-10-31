@@ -144,6 +144,16 @@ describe('JwtTokenHandler', function() {
         expect(handler.realm).to.be.equal('TEST');
       });
 
+      it('should have requiredScopes property as option value', function() {
+        handler = new JwtTokenHandler({
+          issuer: issuer,
+          audience: audience,
+          scopes: ['test:scope'],
+          jwks: jwks
+        });
+        expect(handler.requiredScopes).to.deep.equal(['test:scope']);
+      });
+
       it('should have scopeClaimName property as option value', function() {
         handler = new JwtTokenHandler({
           issuer: issuer,
@@ -574,6 +584,10 @@ describe('JwtTokenHandler', function() {
               expect(claims.sub).to.equal(subject);
               expect(claims.iss).to.equal(issuer);
               expect(claims.aud).to.equal(audience);
+              expect(claims.hasScopes('email')).to.be.true;
+              expect(claims.hasScopes(['email'])).to.be.true;
+              expect(claims.hasScopes('missing')).to.be.false;
+              expect(claims.hasScopes(['missing'])).to.be.false;
               done();
             })
         });
@@ -585,6 +599,8 @@ describe('JwtTokenHandler', function() {
               expect(claims.sub).to.equal(subject);
               expect(claims.iss).to.equal(issuer);
               expect(claims.aud).to.equal(audience);
+              expect(claims.hasScopes(['email', 'phone'])).to.be.true;
+              expect(claims.hasScopes(['email', 'phone', 'missing'])).to.be.false;
               done();
             })
         });
