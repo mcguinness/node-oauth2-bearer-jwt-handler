@@ -1,8 +1,7 @@
 {
   "name": "node-oauth2-bearer-jwt-handler",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "RFC 6750 JWT Bearer Token Handler with RSA JWKS Key Provider",
-  "private": true,
   "keywords": [
     "bearer",
     "token",
