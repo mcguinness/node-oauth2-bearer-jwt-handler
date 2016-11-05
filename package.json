@@ -1,7 +1,7 @@
 {
-  "name": "node-oauth2-bearer-jwt-handler",
+  "name": "oauth2-bearer-jwt-handler",
   "version": "0.3.0",
-  "description": "RFC 6750 JWT Bearer Token Handler with RSA JWKS Key Provider",
+  "description": "RFC 6750 bearer JSON Web Token (JWT) handler with RSA JSON Web Key Set (JWKS) key provider",
   "keywords": [
     "bearer",
     "token",
@@ -11,7 +11,8 @@
     "jwks",
     "oidc",
     "openid_connect",
-    "okta"
+    "okta",
+    "rfc6750"
   ],
   "scripts": {
     "test": "DEBUG=oauth2-jwt-bearer mocha"
