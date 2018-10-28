@@ -199,6 +199,41 @@ describe('JwtTokenHandler', function() {
           })
         });
 
+        it('should have jwks property with keys from both JWKS resolvers', function(done) {
+          nock.cleanAll();
+          nock(baseUrl)
+            .get(jwksPath)
+            .replyWithFile(200, path.join(__dirname, 'keys.json'));
+
+          handler = new JwtTokenHandler({
+            issuer: token.issuer,
+            audience: token.audience,
+            scopesClaimName: 'test',
+            jwks: {
+              keys: [
+                {
+                  alg: 'RS256',
+                  e: 'AQAB',
+                  n: 'tcnyvuVCrsFEKCwHDenS3Ocjed8eWDv3zLtD2K_iZfE8BMj2wpTfn6Ry8zCYey3mWlKdxIybnV9amrujGRnE0ab6Q16v9D6RlFQLOG6dwqoRKuZy33Uyg8PGdEudZjGbWuKCqqXEp-UKALJHV-k4wWeVH8g5d1n3KyR2TVajVJpCrPhLFmq1Il4G_IUnPe4MvjXqB6CpKkog1-ThWsItPRJPAM-RweFHXq7KfChXsYE7Mmfuly8sDQlvBmQyxZnFHVuiPfCvGHJjpvHy11YlHdOjfgqHRvZbmo30-y0X_oY_yV4YEJ00LL6eJWU4wi7ViY3HP6_VCdRjHoRdr5L_Dw',
+                  kty: 'RSA',
+                  use: 'sig',
+                  kid: 'test'
+                }
+              ]
+            },
+            jwksUrl: baseUrl + jwksPath
+          });
+
+          handler.getSigningKeys(function(err, keys) {
+            expect(err).to.be.null;
+            expect(keys).to.be.a('array');
+            expect(keys.length).to.be.equal(3);
+            expect(keys[0].rsaPublicKey).to.not.be.null;
+            expect(keys[1].rsaPublicKey).to.not.be.null;
+            done();
+          })
+        });
+
         it('should have clockTolerance property as default value', function() {
           expect(handler.clockTolerance).to.be.equal(5);
         });
