@@ -14,17 +14,6 @@ const JwtTokenHandler = require('node-oauth2-bearer-jwt-handler').JwtTokenHandle
 
 ```
 
-
-declare function greet(greeting: string): void;
-declare class MyClass {
-    constructor(someParam?: string);
-
-    someProperty: string[];
-
-    myMethod(opts: MyClass.MyClassMethodOptions): number;
-}
-
-
 ### Required Token Handler Options
 
 Option | Description

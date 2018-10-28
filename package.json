@@ -1,6 +1,6 @@
 {
   "name": "oauth2-bearer-jwt-handler",
-  "version": "0.3.0",
+  "version": "1.0.0",
   "description": "RFC 6750 bearer JSON Web Token (JWT) handler with RSA JSON Web Key Set (JWKS) key provider",
   "keywords": [
     "bearer",
